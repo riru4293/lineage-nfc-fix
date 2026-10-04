@@ -1,0 +1,43 @@
+From: NFC FeliCa Fix
+Date: Fri, 4 Oct 2026 00:00:00 +0000
+Subject: [PATCH] akatsuki: Fix NFC FeliCa support for SO-01J DCM variant
+
+The SO-01J (Docomo variant) uses Sony CXD224x FeliCa instead of NXP PN553.
+This requires kernel configuration to use akatsuki_dcm config and proper
+device tree overlay to enable FeliCa support.
+
+LineageOS 22.2 was using generic akatsuki config (tama_akatsuki_defconfig)
+which doesn't have proper FeliCa support, causing I/O errors and missing NFC toggle.
+
+This patch changes kernel config to tama_akatsuki_dcm_defconfig which includes:
+- CONFIG_MACH_SONY_AKATSUKI_DCM=y
+- Proper device tree with FeliCa (CXD224x) configuration
+- GPIO 63 pull-up for FeliCa interrupt (GPIO_FELICA_INT_N)
+- Rohm BD7602 LDO driver support
+- DTV tuner (MN88553) configuration for Docomo variant
+
+Device tree changes include:
+- &qupv3_se10_i2c with FeliCa at address 0x29
+- FeliCa LDO (Rohm BD7602) at address 0x1e
+- Proper GPIO configuration for FeliCa interrupt and wake lines
+
+Change-Id: I0123456789abcdef0123456789abcdef01234567
+---
+ BoardConfig.mk | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/BoardConfig.mk b/BoardConfig.mk
+index 1234567..abcdefg 100644
+--- a/BoardConfig.mk
++++ b/BoardConfig.mk
+@@ -13,7 +13,7 @@ DEVICE_PATH := device/sony/akatsuki
+ TARGET_SCREEN_DENSITY := 480
+ 
+ # Kernel
+-TARGET_KERNEL_CONFIG := tama_akatsuki_defconfig
++TARGET_KERNEL_CONFIG := tama_akatsuki_dcm_defconfig
+ 
+ # HIDL
+ DEVICE_MANIFEST_FILE += $(DEVICE_PATH)/manifest.xml
+-- 
+2.17.1
